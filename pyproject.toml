@@ -25,7 +25,8 @@ dependencies = [
     "wandb",
     "comet_ml",
     "pandas",
-    "bettermap"
+    "bettermap",
+    "plotly"
 ]
 
 # Helps users find your project. Full list: https://pypi.org/classifiers/
