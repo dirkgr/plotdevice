@@ -11,7 +11,7 @@ import pandas as pd
 import bettermap
 import numpy as np
 
-from logging_tqdm import make_tqdm
+from .logging_tqdm import make_tqdm
 
 # set up tqdm
 _logger = logging.getLogger(__name__)
