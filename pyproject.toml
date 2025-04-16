@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[project]
+name = "plotdevice"
+version = "0.1.0"
+
+description = "A library for plotting data from ML workflows"
+requires-python = ">=3.10"
+keywords = ["machine learning", "visualization", "plotting", "experiment tracking", "mlops"]
+
+authors = [
+    { name = "Dirk Groeneveld", email = "dirkg@allenai.org" },
+    # Add more authors if needed
+]
+# Or use 'maintainers' instead/additionally if appropriate
+
+dependencies = [
+    "numpy<2.0",
+    "matplotlib>=3.5",
+    "wandb",
+    "comet_ml",
+    "pandas",
+    "bettermap"
+]
+
+# Helps users find your project. Full list: https://pypi.org/classifiers/
+classifiers = [
+    "Development Status :: 3 - Alpha",  # Start with Alpha or Beta
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Visualization",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed", # If you include type hints
+]
+
+[project.urls]
+Homepage = "https://github.com/dirkgr/plotdevice"
+Repository = "https://github.com/dirkgr/plotdevice"
+# Documentation = "https://plotdevice.readthedocs.io" # Example
+"Bug Tracker" = "https://github.com/dirkgr/plotdevice/issues"
