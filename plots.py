@@ -1,5 +1,6 @@
 import dataclasses
 import functools
+import logging
 from abc import abstractmethod
 from dataclasses import dataclass
 from typing import *
@@ -10,8 +11,11 @@ import pandas as pd
 import bettermap
 import numpy as np
 
+from logging_tqdm import make_tqdm
 
-from tqdm.notebook import tqdm
+# set up tqdm
+_logger = logging.getLogger(__name__)
+tqdm = make_tqdm(_logger)
 
 
 _wandb_api = wandb.Api()
