@@ -51,3 +51,11 @@ Homepage = "https://github.com/dirkgr/plotdevice"
 Repository = "https://github.com/dirkgr/plotdevice"
 # Documentation = "https://plotdevice.readthedocs.io" # Example
 "Bug Tracker" = "https://github.com/dirkgr/plotdevice/issues"
+
+[project.optional-dependencies]
+
+dev = [
+    "pytest",
+    "pytest-xdist",
+    "setuptools"
+]
