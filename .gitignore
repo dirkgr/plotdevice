@@ -2,4 +2,5 @@
 /.idea/
 /*.iml
 /*.egg-info/
+/src/*.egg-info/
 /build/
