@@ -1,9 +1,8 @@
 from typing import *
 
-import plotly.graph_objects as go
-from plotly.express.colors import qualitative
+import matplotlib.pyplot as plt
 
-from .plotdevice import TimeSeries
+from . import TimeSeries
 
 
 def plot(
@@ -29,30 +28,13 @@ def plot(
     else:
         labels = [f'{t.run_name} / {t.name}' if t.run_name is not None else t.name for t in ts]
 
-    fig = go.Figure()
-    colors = qualitative.Plotly
-
-    for i, (t, label) in enumerate(zip(ts, labels)):
+    for t, label in zip(ts, labels):
         xs = t.xs
         ys = t.ys
-        # Changed: Assign color explicitly from the colors list
-        fig.add_trace(go.Scatter(
-            x=xs,
-            y=ys,
-            mode='lines',
-            name=label,
-            line=dict(
-                width=0.5,
-                # Assign color based on index, cycling through the list
-                color=colors[i % len(colors)]
-            )
-        ))
-
-    fig.update_layout(
-        xaxis_range=xlim if xlim != (None, None) else None,
-        yaxis_range=ylim if ylim != (None, None) else None,
-        yaxis_type="log" if logy else "linear",
-        legend_title_text='Legend'
-    )
-
-    fig.show()
+        plt.plot(xs, ys, linewidth=0.5, label=label)
+    if logy:
+        plt.yscale('log')
+    plt.ylim(*ylim)
+    plt.xlim(*xlim)
+    plt.legend()
+    plt.show()

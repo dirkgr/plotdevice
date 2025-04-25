@@ -2,12 +2,14 @@
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ["plotdevice"]
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["plotdevice*"]
+exclude = []
 
 [project]
 name = "plotdevice"
-version = "0.1.0"
+version = "0.1.1"
 
 description = "A library for plotting data from ML workflows"
 requires-python = ">=3.10"

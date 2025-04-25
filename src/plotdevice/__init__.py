@@ -92,12 +92,12 @@ class Run:
 
 class WandbRun(Run):
     def __init__(
-        self,
-        entity: str,
-        project: str,
-        groups: Union[str, List[str]],
-        *,
-        name: Optional[str] = None,
+            self,
+            entity: str,
+            project: str,
+            groups: Union[str, List[str]],
+            *,
+            name: Optional[str] = None,
     ):
         super().__init__(name)
 
@@ -159,12 +159,12 @@ class WandbRun(Run):
 
 class CometmlRun(Run):
     def __init__(
-        self,
-        workspace: str,
-        project: str,
-        pattern: str,
-        *,
-        name: Optional[str] = None,
+            self,
+            workspace: str,
+            project: str,
+            pattern: str,
+            *,
+            name: Optional[str] = None,
     ):
         super().__init__(name)
         self.experiments = _cometml_api.get_experiments(workspace, project, pattern)
@@ -183,6 +183,7 @@ class CometmlRun(Run):
         ys = []
 
         for experiment in self.experiments:
+            metrics = experiment.get_metric_total_df(metric)
             metrics = experiment.get_metrics(metric=metric)
             xs.extend(x['step'] for x in metrics)
             ys.extend(float(x['metricValue']) for x in metrics)
@@ -195,3 +196,5 @@ class CometmlRun(Run):
         ys = ys[sort_indices]
 
         return TimeSeries(xs, ys, metric, run_name=self.name)
+
+from plotdevice import plot_with_plotly, plot_with_matplotlib
