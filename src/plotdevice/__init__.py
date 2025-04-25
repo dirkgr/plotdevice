@@ -184,9 +184,14 @@ class CometmlRun(Run):
 
         for experiment in self.experiments:
             metrics = experiment.get_metric_total_df(metric)
-            metrics = experiment.get_metrics(metric=metric)
-            xs.extend(x['step'] for x in metrics)
-            ys.extend(float(x['metricValue']) for x in metrics)
+            if metrics is None:
+                _logger.warning(f"Can't download full fidelity metrics from CometML for {metric} in {experiment.key}. Falling back to sampled.")
+                metrics = experiment.get_metrics(metric=metric)
+                xs.extend(x['step'] for x in metrics)
+                ys.extend(float(x['metricValue']) for x in metrics)
+            else:
+                xs.extend(metrics['step'])
+                ys.extend(metrics['value'])
 
         assert len(xs) == len(ys)
         xs = np.array(xs)
