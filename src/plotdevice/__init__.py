@@ -185,8 +185,10 @@ class CometmlRun(Run):
         for experiment in self.experiments:
             metrics = experiment.get_metric_total_df(metric)
             if metrics is None:
-                _logger.warning(f"Can't download full fidelity metrics from CometML for {metric} in {experiment.key}. Falling back to sampled.")
                 metrics = experiment.get_metrics(metric=metric)
+                if len(metrics) > 0:
+                    # only warn if the metric does exist with the old method
+                    _logger.warning(f"Can't download full fidelity metrics from CometML for {metric} in {experiment.key}. Falling back to sampled.")
                 xs.extend(x['step'] for x in metrics)
                 ys.extend(float(x['metricValue']) for x in metrics)
             else:
