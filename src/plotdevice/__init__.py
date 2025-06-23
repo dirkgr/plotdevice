@@ -120,13 +120,23 @@ class WandbRun(Run):
             a = _wandb_api.artifact(f"{run.entity}/{run.project}/run-{run.id}-history:latest")
         except wandb.errors.CommError as e:
             if "not found" in e.message:
-                return pd.DataFrame()
+                # fallback to scan_history
+                rows = list(run.scan_history(page_size=16 * 1024))
+                return pd.DataFrame(rows)
             else:
                 raise
         return pd.read_parquet(a.file())
 
     def _get_dataframes(self) -> Iterable[pd.DataFrame]:
-        return tqdm(bettermap.ordered_map_per_thread(WandbRun._wandb_get_dataframe, self.runs), total=len(self.runs))
+        return [
+            df
+            for df in tqdm(
+                bettermap.ordered_map_per_thread(
+                    WandbRun._wandb_get_dataframe,
+                    self.runs),
+                total=len(self.runs))
+            if df is not None
+        ]
 
     @property
     def available_metrics(self) -> Set[str]:
