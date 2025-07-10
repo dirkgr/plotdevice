@@ -119,7 +119,7 @@ class WandbRun(Run):
         try:
             a = _wandb_api.artifact(f"{run.entity}/{run.project}/run-{run.id}-history:latest")
         except wandb.errors.CommError as e:
-            if "not found" in e.message:
+            if "not found" in e.message or "does not contain artifact" in e.message:
                 # fallback to scan_history
                 rows = list(run.scan_history(page_size=16 * 1024))
                 return pd.DataFrame(rows)
