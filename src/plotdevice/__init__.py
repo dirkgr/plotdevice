@@ -133,7 +133,9 @@ class WandbRun(Run):
             for df in tqdm(
                 bettermap.ordered_map_per_thread(
                     WandbRun._wandb_get_dataframe,
-                    self.runs),
+                    self.runs,
+                    parallelism=10  # connection pool size for urllib3
+                ),
                 total=len(self.runs))
             if df is not None
         ]
