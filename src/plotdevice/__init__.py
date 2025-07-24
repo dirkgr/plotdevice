@@ -1,3 +1,4 @@
+import collections
 import dataclasses
 import functools
 import logging
@@ -147,25 +148,39 @@ class WandbRun(Run):
             metrics |= set(df.columns)
         return metrics
 
-    def get_time_series(self, metric: str) -> TimeSeries:
-        xs = []
-        ys = []
+    def get_time_series(
+        self,
+        metric: str,
+        *,
+        alternate_names: Iterable[str] = frozenset(),
+    ) -> TimeSeries:
+        xs = collections.defaultdict(list)
+        ys = collections.defaultdict(list)
+        all_metric_names = [metric] + list(alternate_names)
         for df in self._get_dataframes():
-            if metric not in df:
+            for metric_name in all_metric_names:
+                if metric_name not in df:
+                    continue
+                df = df.dropna(subset=[metric_name])
+                steps = [int(s) for s in df['_step']]
+                values = [float(v) for v in df[metric_name]]
+                assert len(steps) == len(values)
+                xs[metric_name].extend(steps)
+                ys[metric_name].extend(values)
+
+        # pick the first one that has data
+        for metric_name in all_metric_names:
+            if metric_name not in xs or metric_name not in ys:
                 continue
-            df = df.dropna(subset=[metric])
-            steps = [int(s) for s in df['_step']]
-            values = [float(v) for v in df[metric]]
-            assert len(steps) == len(values)
-            xs.extend(steps)
-            ys.extend(values)
+            xs = np.array(xs[metric_name])
+            ys = np.array(ys[metric_name])
+            sort_indices = np.argsort(xs)
+            xs = xs[sort_indices]
+            ys = ys[sort_indices]
+            return TimeSeries(xs=xs, ys=ys, name=metric, run_name=self.name)
 
-        xs = np.array(xs)
-        ys = np.array(ys)
-        sort_indices = np.argsort(xs)
-        xs = xs[sort_indices]
-        ys = ys[sort_indices]
-
+        xs = np.array([], dtype=int)
+        ys = np.array([], dtype=float)
         return TimeSeries(xs=xs, ys=ys, name=metric, run_name=self.name)
 
 
