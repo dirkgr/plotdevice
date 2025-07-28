@@ -93,3 +93,10 @@ def test_timeseries_average_different_runs():
 
     avg_ts = TimeSeries.average([ts1, ts2])
     assert avg_ts.run_name is None # Should be None if runs differ
+
+def test_timeseries_transform_empty():
+    ts1 = TimeSeries(xs=np.array([]), ys=np.array([]), name="ts1")
+    ts2 = TimeSeries(xs=np.array([]), ys=np.array([]), name="ts2")
+    ts3 = ts1.transform_x_axis(ts2)
+    assert len(ts3.xs) == 0
+    assert len(ts3.ys) == 0
