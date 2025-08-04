@@ -50,6 +50,8 @@ class TimeSeries:
         return TimeSeries(xs, ys, name or f'{self.name} vs {x_mapper.name})', self.run_name)
 
     def smooth_with_moving_average(self, width: int = 100, *, name: Optional[str] = None) -> 'TimeSeries':
+        if len(self.xs) == 0:
+            return TimeSeries(self.xs, self.ys, self.name, self.run_name)
         xnew = np.linspace(self.xs[0], self.xs[-1], num=len(self.xs))
         ynew = np.interp(xnew, self.xs, self.ys)
         ynew = _moving_average(ynew, width)

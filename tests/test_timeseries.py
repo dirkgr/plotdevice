@@ -100,3 +100,9 @@ def test_timeseries_transform_empty():
     ts3 = ts1.transform_x_axis(ts2)
     assert len(ts3.xs) == 0
     assert len(ts3.ys) == 0
+
+def test_smooth_with_moving_average_empty():
+    ts = TimeSeries(xs=np.array([]), ys=np.array([]), name="ts1")
+    smoothed_ts = ts.smooth_with_moving_average()
+    assert len(smoothed_ts.xs) == 0
+    assert len(smoothed_ts.ys) == 0
