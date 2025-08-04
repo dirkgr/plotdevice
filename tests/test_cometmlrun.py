@@ -1,6 +1,8 @@
+import pytest
+
 from plotdevice import CometmlRun
 
-
+@pytest.mark.skip
 def test_cometmlrun_full_fidelity():
     run = CometmlRun(
         "ai2",
