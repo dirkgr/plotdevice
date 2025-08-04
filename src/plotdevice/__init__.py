@@ -158,8 +158,7 @@ class WandbRun(Run):
         *,
         alternate_names: Iterable[str] = frozenset(),
     ) -> TimeSeries:
-        xs = collections.defaultdict(list)
-        ys = collections.defaultdict(list)
+        pairs = collections.defaultdict(dict)
         all_metric_names = [metric] + list(alternate_names)
         for df in self._get_dataframes():
             for metric_name in all_metric_names:
@@ -169,15 +168,14 @@ class WandbRun(Run):
                 steps = [int(s) for s in df['_step']]
                 values = [float(v) for v in df[metric_name]]
                 assert len(steps) == len(values)
-                xs[metric_name].extend(steps)
-                ys[metric_name].extend(values)
+                pairs[metric_name].update(zip(steps, values))
 
         # pick the first one that has data
         for metric_name in all_metric_names:
-            if metric_name not in xs or metric_name not in ys:
+            if metric_name not in pairs:
                 continue
-            xs = np.array(xs[metric_name])
-            ys = np.array(ys[metric_name])
+            xs = np.array(list(pairs[metric_name].keys()))
+            ys = np.array(list(pairs[metric_name].values()))
             sort_indices = np.argsort(xs)
             xs = xs[sort_indices]
             ys = ys[sort_indices]
