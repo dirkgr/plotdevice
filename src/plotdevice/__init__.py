@@ -47,7 +47,7 @@ class TimeSeries:
         xs = self.xs
         if len(xs) > 0:
             xs = np.interp(self.xs, x_mapper.xs, x_mapper.ys)
-        return TimeSeries(xs, ys, name or f'{self.name} vs {x_mapper.name})', self.run_name)
+        return TimeSeries(xs, ys, name or f'{self.name} vs {x_mapper.name}', self.run_name)
 
     def smooth_with_moving_average(self, width: int = 100, *, name: Optional[str] = None) -> 'TimeSeries':
         if len(self.xs) == 0:
