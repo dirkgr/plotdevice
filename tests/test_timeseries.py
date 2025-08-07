@@ -101,8 +101,168 @@ def test_timeseries_transform_empty():
     assert len(ts3.xs) == 0
     assert len(ts3.ys) == 0
 
-def test_smooth_with_moving_average_empty():
+def test_timeseries_smooth_with_moving_average_empty():
     ts = TimeSeries(xs=np.array([]), ys=np.array([]), name="ts1")
     smoothed_ts = ts.smooth_with_moving_average()
     assert len(smoothed_ts.xs) == 0
     assert len(smoothed_ts.ys) == 0
+
+def test_timeseries_sub():
+    """Test the __sub__ method of TimeSeries class."""
+
+    # Test case 1: Basic subtraction with overlapping x values
+    ts1 = TimeSeries(
+        xs=np.array([1, 2, 3, 4, 5]),
+        ys=np.array([10, 20, 30, 40, 50]),
+        name="series1",
+        run_name="run1"
+    )
+
+    ts2 = TimeSeries(
+        xs=np.array([1, 2, 3, 4, 5]),
+        ys=np.array([5, 10, 15, 20, 25]),
+        name="series2",
+        run_name="run1"
+    )
+
+    result = ts1 - ts2
+
+    # Check x values (intersection of both series)
+    expected_xs = np.array([1, 2, 3, 4, 5])
+    np.testing.assert_array_equal(result.xs, expected_xs)
+
+    # Check y values (subtraction)
+    expected_ys = np.array([5, 10, 15, 20, 25])  # [10-5, 20-10, 30-15, 40-20, 50-25]
+    np.testing.assert_array_equal(result.ys, expected_ys)
+
+    # Check name
+    assert result.name == "series1 - series2"
+
+    # Check run_name (same run_name for both)
+    assert result.run_name == "run1"
+
+def test_timeseries_sub_run_name_handling():
+    """Test various run_name scenarios."""
+
+    # Case 1: Both have None run_name
+    ts1 = TimeSeries(np.array([1, 2]), np.array([10, 20]), "s1", None)
+    ts2 = TimeSeries(np.array([1, 2]), np.array([5, 10]), "s2", None)
+    result = ts1 - ts2
+    assert result.run_name is None
+
+    # Case 2: One has None, other has run_name
+    ts1 = TimeSeries(np.array([1, 2]), np.array([10, 20]), "s1", "run1")
+    ts2 = TimeSeries(np.array([1, 2]), np.array([5, 10]), "s2", None)
+    result = ts1 - ts2
+    assert result.run_name == "run1"
+
+    # Case 3: Same run_name
+    ts1 = TimeSeries(np.array([1, 2]), np.array([10, 20]), "s1", "same_run")
+    ts2 = TimeSeries(np.array([1, 2]), np.array([5, 10]), "s2", "same_run")
+    result = ts1 - ts2
+    assert result.run_name == "same_run"
+
+def test_timeseries_sub_no_overlap():
+    """Test subtraction with no overlapping x values."""
+
+    ts1 = TimeSeries(
+        xs=np.array([1, 2, 3]),
+        ys=np.array([10, 20, 30]),
+        name="series1",
+        run_name="run1"
+    )
+
+    ts2 = TimeSeries(
+        xs=np.array([4, 5, 6]),
+        ys=np.array([40, 50, 60]),
+        name="series2",
+        run_name="run2"
+    )
+
+    result = ts1 - ts2
+
+    # Union of x values: [1, 2, 3, 4, 5, 6]
+    expected_xs = np.array([1, 2, 3, 4, 5, 6])
+    np.testing.assert_array_equal(result.xs, expected_xs)
+
+    # Values will be interpolated/extrapolated
+    # At x=1: ts1=10, ts2=extrapolated=40, diff=-30
+    # At x=2: ts1=20, ts2=extrapolated=40, diff=-20
+    # At x=3: ts1=30, ts2=extrapolated=40, diff=-10
+    # At x=4: ts1=extrapolated=30, ts2=40, diff=-10
+    # At x=5: ts1=extrapolated=30, ts2=50, diff=-20
+    # At x=6: ts1=extrapolated=30, ts2=60, diff=-30
+    expected_ys = np.array([-30., -20., -10., -10., -20., -30.])
+    np.testing.assert_array_equal(result.ys, expected_ys)
+
+    assert result.name == "series1 - series2"
+    assert result.run_name == "run1 - run2"
+
+def test_timeseries_sub_with_interpolation():
+    """Test subtraction requiring interpolation."""
+
+    ts1 = TimeSeries(
+        xs=np.array([1, 2, 4, 5]),
+        ys=np.array([10, 20, 40, 50]),
+        name="series1",
+        run_name="run1"
+    )
+
+    ts2 = TimeSeries(
+        xs=np.array([1, 3, 5]),
+        ys=np.array([5, 15, 25]),
+        name="series2",
+        run_name="run2"
+    )
+
+    result = ts1 - ts2
+
+    # Check x values (union: 1, 2, 3, 4, 5)
+    expected_xs = np.array([1, 2, 3, 4, 5])
+    np.testing.assert_array_equal(result.xs, expected_xs)
+
+    # Check y values with interpolation
+    # At x=1: ts1=10, ts2=5, diff=5
+    # At x=2: ts1=20, ts2=interp(2, [1,3,5], [5,15,25])=10, diff=10
+    # At x=3: ts1=interp(3, [1,2,4,5], [10,20,40,50])=30, ts2=15, diff=15
+    # At x=4: ts1=40, ts2=interp(4, [1,3,5], [5,15,25])=20, diff=20
+    # At x=5: ts1=50, ts2=25, diff=25
+    expected_ys = np.array([5, 10, 15, 20, 25])
+    np.testing.assert_array_equal(result.ys, expected_ys)
+
+def test_timeseries_sub_partial_overlap():
+    """Test subtraction with partially overlapping x values."""
+
+    ts1 = TimeSeries(
+        xs=np.array([1, 2, 3, 4, 5]),
+        ys=np.array([10, 20, 30, 40, 50]),
+        name="series1",
+        run_name="run1"
+    )
+
+    ts2 = TimeSeries(
+        xs=np.array([3, 4, 5, 6, 7]),
+        ys=np.array([15, 20, 25, 30, 35]),
+        name="series2",
+        run_name="run2"
+    )
+
+    result = ts1 - ts2
+
+    # Check x values (union of both series: 1,2,3,4,5,6,7)
+    expected_xs = np.array([1, 2, 3, 4, 5, 6, 7])
+    np.testing.assert_array_equal(result.xs, expected_xs)
+
+    # Check y values with interpolation
+    # At x=1: ts1=10, ts2=extrapolated=15, diff=-5
+    # At x=2: ts1=20, ts2=extrapolated=15, diff=5
+    # At x=3: ts1=30, ts2=15, diff=15
+    # At x=4: ts1=40, ts2=20, diff=20
+    # At x=5: ts1=50, ts2=25, diff=25
+    # At x=6: ts1=extrapolated=50, ts2=30, diff=20
+    # At x=7: ts1=extrapolated=50, ts2=35, diff=15
+    expected_ys = np.array([-5.,  5., 15., 20., 25., 20., 15.])
+    np.testing.assert_array_equal(result.ys, expected_ys)
+
+    # Check run_name (different run_names)
+    assert result.run_name == "run1 - run2"

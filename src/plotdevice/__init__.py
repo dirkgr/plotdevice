@@ -76,6 +76,25 @@ class TimeSeries:
 
         return TimeSeries(xs, ys, name or f"avg({','.join(t.name for t in ts)})", run_name)
 
+    def __sub__(self, other: 'TimeSeries') -> 'TimeSeries':
+        all_xs = np.array(list(set(self.xs) | set(other.xs)))
+        all_xs.sort()
+        ys = np.interp(all_xs, self.xs, self.ys) - np.interp(all_xs, other.xs, other.ys)
+
+        run_names = {ts.run_name for ts in (self, other) if ts.run_name is not None}
+        if len(run_names) == 0:
+            run_name = None
+        elif len(run_names) == 1:
+            run_name = run_names.pop()
+        else:
+            run_name = f"{self.run_name} - {other.run_name}"
+
+        return TimeSeries(
+            all_xs,
+            ys,
+            name=f"{self.name} - {other.name}",
+            run_name=run_name)
+
 
 class Run:
     def __init__(self, name: Optional[str] = None):
