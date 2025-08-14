@@ -94,6 +94,35 @@ def test_timeseries_average_different_runs():
     avg_ts = TimeSeries.average([ts1, ts2])
     assert avg_ts.run_name is None # Should be None if runs differ
 
+def test_timeseries_max():
+    """Tests static max method."""
+    ts1 = TimeSeries(xs=np.array([0, 2, 4]), ys=np.array([1, 3, 5]), name="ts1", run_name="runA")
+    ts2 = TimeSeries(xs=np.array([1, 3]), ys=np.array([10, 30]), name="ts2", run_name="runA")
+
+    max_ts = TimeSeries.max(ts1, ts2)
+
+    # Expected xs are the union of unique x-values: [0, 1, 2, 3, 4]
+    expected_xs = np.array([0, 1, 2, 3, 4])
+    np.testing.assert_array_equal(max_ts.xs, expected_xs)
+
+    # ts1 at xs: [1, 2, 3, 4, 5]
+    # ts2 at xs: [10, 10, 20, 30, 30]
+    # max:       [10, 10, 20, 30, 30]
+    expected_ys = np.array([10.0, 10.0, 20.0, 30.0, 30.0])
+    np.testing.assert_allclose(max_ts.ys, expected_ys)
+
+    # Check name generation and run_name propagation
+    assert max_ts.name == "max(ts1,ts2)"
+    assert max_ts.run_name == "runA" # Since both runs are the same
+
+def test_timeseries_max_different_runs():
+    """Tests static average method with different run names."""
+    ts1 = TimeSeries(xs=np.array([0, 2]), ys=np.array([1, 3]), name="ts1", run_name="runA")
+    ts2 = TimeSeries(xs=np.array([1, 3]), ys=np.array([10, 30]), name="ts2", run_name="runB")
+
+    max_ts = TimeSeries.max(ts1, ts2)
+    assert max_ts.run_name is None # Should be None if runs differ
+
 def test_timeseries_transform_empty():
     ts1 = TimeSeries(xs=np.array([]), ys=np.array([]), name="ts1")
     ts2 = TimeSeries(xs=np.array([]), ys=np.array([]), name="ts2")

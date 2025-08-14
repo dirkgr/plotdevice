@@ -76,6 +76,23 @@ class TimeSeries:
 
         return TimeSeries(xs, ys, name or f"avg({','.join(t.name for t in ts)})", run_name)
 
+    @staticmethod
+    def max(*ts: 'TimeSeries', name: Optional[str] = None) -> 'TimeSeries':
+        xs = np.unique(np.concatenate([t.xs for t in ts]))
+        xs.sort()
+        ys = np.zeros((len(ts), len(xs)), dtype=float)
+        for i, t in enumerate(ts):
+            ys[i] = np.interp(xs, t.xs, t.ys)
+        ys = ys.max(axis=0)
+
+        run_names = {t.run_name for t in ts}
+        if len(run_names) == 1:
+            run_name = run_names.pop()
+        else:
+            run_name = None
+
+        return TimeSeries(xs, ys, name or f"max({','.join(t.name for t in ts)})", run_name)
+
     def __sub__(self, other: 'TimeSeries') -> 'TimeSeries':
         all_xs = np.array(list(set(self.xs) | set(other.xs)))
         all_xs.sort()
