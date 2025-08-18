@@ -2,6 +2,7 @@ import collections
 import dataclasses
 import functools
 import logging
+import os
 from abc import abstractmethod
 from dataclasses import dataclass
 from typing import *
@@ -166,7 +167,19 @@ class WandbRun(Run):
                 return pd.DataFrame(rows)
             else:
                 raise
-        return pd.read_parquet(a.file())
+
+        df = None
+
+        for name, e in a.manifest.entries.items():
+            if name.endswith(".parquet"):
+                downloaded_path = os.path.join(".", "plotdevice_wandb_artifacts", run.id)
+                downloaded_path = a.get_entry(name).download(downloaded_path)
+                new_df = pd.read_parquet(downloaded_path)
+                if df is None:
+                    df = new_df
+                else:
+                    df = pd.concat([df, new_df])
+        return df
 
     def _get_dataframes(self) -> Iterable[pd.DataFrame]:
         return [
