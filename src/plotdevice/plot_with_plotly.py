@@ -42,7 +42,7 @@ def plot(
             mode='lines',
             name=label,
             line=dict(
-                width=0.5,
+                width=1,
                 # Assign color based on index, cycling through the list
                 color=colors[i % len(colors)]
             )
