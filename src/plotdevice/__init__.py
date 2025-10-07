@@ -183,7 +183,7 @@ class WandbRun(Run):
         # It seems that running experiments only flush to artifact files occasionally, so we get the rest this way.
         if run.state == "running":
             last_step_we_have = int(max(df['_step']))
-            rows = list(run.scan_history(page_size=16 * 1024, min_step=last_step_we_have+1))
+            rows = list(run.scan_history(page_size=32 * 1024, min_step=last_step_we_have+1))
             df = pd.concat([df, pd.DataFrame(rows)])
 
         return df
