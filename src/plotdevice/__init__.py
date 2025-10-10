@@ -60,6 +60,15 @@ class TimeSeries:
         xnew = xnew[:len(ynew)]
         return TimeSeries(xnew, ynew, name or self.name, self.run_name)
 
+    def spikescore(self, window: int = 128, sigma: float = 6):
+        xnew = np.linspace(self.xs[0], self.xs[-1], num=len(self.xs))
+        ynew = np.interp(xnew, self.xs, self.ys)
+        sliding_window_y = np.lib.stride_tricks.sliding_window_view(ynew, window)
+        stds = sliding_window_y.std(axis=1)
+        means = sliding_window_y.mean(axis=1)
+        ys = sliding_window_y[:,-1]
+        return (ys > (means + sigma * stds)).sum() / len(ys)
+
     @staticmethod
     def average(ts: List['TimeSeries'], *, name: Optional[str] = None) -> 'TimeSeries':
         xs = np.unique(np.concatenate([t.xs for t in ts]))

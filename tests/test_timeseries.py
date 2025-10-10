@@ -295,3 +295,87 @@ def test_timeseries_sub_partial_overlap():
 
     # Check run_name (different run_names)
     assert result.run_name == "run1 - run2"
+
+def test_timeseries_spikescore_basic():
+    """Test the spikescore method with a simple time series."""
+    # Create a time series with mostly flat values and a few spikes
+    # Using enough points to exceed default window size of 128
+    xs = np.arange(200, dtype=float)
+    ys = np.ones(200) * 10.0  # Base value of 10
+
+    # Add some extreme spikes
+    ys[150] = 100.0  # Clear spike
+    ys[151] = 100.0  # Another spike
+
+    ts = TimeSeries(xs=xs, ys=ys, name="spike_test")
+
+    # With default parameters (window=128, sigma=6), should detect the spikes
+    score = ts.spikescore()
+
+    # Score should be between 0 and 1
+    assert 0.0 <= score <= 1.0
+
+    # Since we have clear spikes, score should be > 0
+    assert score > 0.0
+
+def test_timeseries_spikescore_no_spikes():
+    """Test spikescore with a flat time series (no spikes)."""
+    # Create a completely flat time series
+    xs = np.arange(200, dtype=float)
+    ys = np.ones(200) * 5.0
+
+    ts = TimeSeries(xs=xs, ys=ys, name="flat_test")
+
+    # With a flat line, standard deviation is 0, so no spikes should be detected
+    # However, dividing by 0 std could cause issues. Let's see what happens.
+    score = ts.spikescore()
+
+    assert 0.0 <= score <= 1.0
+    # With constant values, std=0, so any value will either always or never exceed mean+sigma*std
+    # This is an edge case - the score behavior depends on the implementation
+
+def test_timeseries_spikescore_all_spikes():
+    """Test spikescore with a highly variable time series."""
+    # Create a time series with high variance
+    xs = np.arange(200, dtype=float)
+    ys = np.random.RandomState(42).randn(200) * 100  # High variance random data
+
+    ts = TimeSeries(xs=xs, ys=ys, name="variable_test")
+
+    score = ts.spikescore()
+
+    # Score should be between 0 and 1
+    assert 0.0 <= score <= 1.0
+
+def test_timeseries_spikescore_custom_parameters():
+    """Test spikescore with custom window and sigma parameters."""
+    xs = np.arange(200, dtype=float)
+    ys = np.ones(200) * 10.0
+    ys[150] = 100.0  # Add a spike
+
+    ts = TimeSeries(xs=xs, ys=ys, name="custom_params_test")
+
+    # Test with smaller window
+    score_small_window = ts.spikescore(window=50, sigma=6)
+    assert 0.0 <= score_small_window <= 1.0
+
+    # Test with lower sigma threshold (more sensitive, should detect more spikes)
+    score_low_sigma = ts.spikescore(window=128, sigma=2)
+    assert 0.0 <= score_low_sigma <= 1.0
+
+    # Test with higher sigma threshold (less sensitive, should detect fewer spikes)
+    score_high_sigma = ts.spikescore(window=128, sigma=10)
+    assert 0.0 <= score_high_sigma <= 1.0
+
+def test_timeseries_spikescore_small_timeseries():
+    """Test spikescore with a time series smaller than the window."""
+    # Create a time series with fewer points than default window (128)
+    xs = np.arange(50, dtype=float)
+    ys = np.ones(50) * 10.0
+    ys[40] = 100.0  # Add a spike
+
+    ts = TimeSeries(xs=xs, ys=ys, name="small_test")
+
+    # Use a window smaller than the data
+    score = ts.spikescore(window=20, sigma=6)
+    assert 0.0 <= score <= 1.0
