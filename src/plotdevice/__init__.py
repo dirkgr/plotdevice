@@ -141,28 +141,14 @@ class Run:
         return TimeSeries.average(ts, name=name)
 
 
-class WandbRun(Run):
+class WandbRunBase(Run):
     def __init__(
             self,
-            entity: str,
-            project: str,
-            groups: Union[str, List[str]],
-            *,
-            name: Optional[str] = None,
+            name: Optional[str],
+            runs: List[wandb.apis.public.Run]
     ):
         super().__init__(name)
-
-        if isinstance(groups, str):
-            groups = [groups]
-
-        self.runs = []
-        for group in groups:
-            self.runs.extend(_wandb_api.runs(
-                path=f"{entity}/{project}",
-                filters={
-                    "group": group
-                }
-            ))
+        self.runs = runs
 
     @functools.cache
     @staticmethod
@@ -249,6 +235,81 @@ class WandbRun(Run):
         xs = np.array([], dtype=int)
         ys = np.array([], dtype=float)
         return TimeSeries(xs=xs, ys=ys, name=metric, run_name=self.name)
+
+    @classmethod
+    def by_group(
+            cls,
+            entity: str,
+            project: str,
+            groups: Union[str, List[str]],
+            *,
+            name: Optional[str] = None
+    ) -> 'WandbRunBase':
+        if isinstance(groups, str):
+            groups = [groups]
+
+        runs = []
+        for group in groups:
+            runs.extend(_wandb_api.runs(
+                path=f"{entity}/{project}",
+                filters={
+                    "group": group
+                }
+            ))
+
+        return cls(name, runs)
+
+    @classmethod
+    def by_name(
+            cls,
+            entity: str,
+            project: str,
+            names_in_wandb: Union[str, List[str]],
+            *,
+            name: Optional[str] = None
+    ) -> 'WandbRunBase':
+        if isinstance(names_in_wandb, str):
+            names_in_wandb = [names_in_wandb]
+
+        runs = []
+        for name_in_wandb in names_in_wandb:
+            runs.extend(_wandb_api.runs(
+                path=f"{entity}/{project}",
+                filters={
+                    "display_name": name_in_wandb
+                }
+            ))
+
+        if name is None:
+            name = names_in_wandb[0]
+
+        return cls(name, runs)
+
+
+class WandbRun(WandbRunBase):
+    """Kept for backward compatibility."""
+
+    def __init__(
+            self,
+            entity: str,
+            project: str,
+            groups: Union[str, List[str]],
+            *,
+            name: Optional[str] = None,
+    ):
+        if isinstance(groups, str):
+            groups = [groups]
+
+        runs = []
+        for group in groups:
+            runs.extend(_wandb_api.runs(
+                path=f"{entity}/{project}",
+                filters={
+                    "group": group
+                }
+            ))
+
+        super().__init__(name, runs)
 
 
 class CometmlRun(Run):
